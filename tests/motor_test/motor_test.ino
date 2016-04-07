@@ -1,26 +1,33 @@
 
-/* afafafaf*/
+//define pins
+#define RIGHTSPD 6
+#define RIGHTDIR 7
+#define LEFTSPD 8
+#define LEFTDIR 9
+
+
+//initialize pins
 void setup() {
-  pinMode(6,OUTPUT);
-  pinMode(7,OUTPUT);
-  digitalWrite(7,LOW);
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
-  digitalWrite(9, LOW);
+  pinMode(RIGHTSPD,OUTPUT);
+  pinMode(RIGHTDIR,OUTPUT);
+  digitalWrite(RIGHTDIR,LOW);
+  pinMode(LEFTSPD, OUTPUT);
+  pinMode(LEFTDIR, OUTPUT);
+  digitalWrite(LEFTDIR, LOW);
 }
 
 void loop() {
-  analogWrite(6,255);
-  analogWrite(8,255);
-  delay(1000);
-  digitalWrite(6,LOW);
-  digitalWrite(7,LOW);
-  delay(1000);
-  digitalWrite(9,HIGH); 
-  analogWrite(6,100);
-  analogWrite(8,100);
-  delay(500);
-  analogWrite(6, LOW);
-  analogWrite(8, LOW);
-  delay(5000);
+  analogWrite(RIGHTSPD,255);
+  analogWrite(LEFTSPD,255);
+  delay(1000); //  full speed forward for one second
+  digitalWrite(RIGHTSPD,LOW);
+  digitalWrite(RIGHTDIR,LOW);
+  delay(1000); // pause for one second
+  digitalWrite(LEFTDIR,HIGH); 
+  analogWrite(RIGHTSPD,100);
+  analogWrite(LEFTSPD,100);
+  delay(500); // clockwise for 500ms
+  analogWrite(RIGHTSPD, LOW);
+  analogWrite(LEFTSPD, LOW);
+  delay(5000); // pause for 5s
 }
