@@ -6,23 +6,43 @@
 #define LEFTDIR 9
 #define TRANSR A0
 #define TRANSL A1
+#define LEDR A3
+#define LEDL A2
 #define LASERR 2
 #define LASERL 3
-#define THRESH 20
+#define THRESHLASER 20
+#define THRESHLED 75
+
+int fallSafeR;
+int fallSafeL;//variables for staying on table
 
 
 //initialize pins
 void setup() {
   pinMode(RIGHTSPD,OUTPUT);
   pinMode(RIGHTDIR,OUTPUT);
-  digitalWrite(RIGHTDIR,HIGH);
+  digitalWrite(RIGHTDIR,HIGH);//right motor setup
   pinMode(LEFTSPD, OUTPUT);
   pinMode(LEFTDIR, OUTPUT);
-  digitalWrite(LEFTDIR, LOW);
+  digitalWrite(LEFTDIR, LOW);//left motor setup
   pinMode(LASERR, OUTPUT);
   digitalWrite(LASERR, HIGH);
   pinMode(LASERL, OUTPUT);
-  digitalWrite(LASERL, HIGH);
+  digitalWrite(LASERL, HIGH);//laser setup
+  pinMode(LEDR, INPUT);
+  pinMode(LEDL, INPUT);
+
+  fallSafeL = analogRead(LEDL);
+  fallSafeR = analogRead(LEDR);
+
+  int startChoice = random(2); //generates a random number (either 0 or 1)
+
+  if(startChoice == 0) {
+    rightStartEvent();
+  }
+  else {
+    leftStartEvent();
+  }
 }
 
 //veers subsequentis left
@@ -41,6 +61,19 @@ void veerRight() {
   analogWrite(RIGHTSPD, 100);
 }
 
+//saves subsequentis from falling
+void lifeSaveEvent () {
+  analogWrite(RIGHTSPD, 0);
+  analogWrite(LEFTSPD, 0);
+}
+
+void rightStartEvent() {
+  //will hold the code for the start event moving right
+}
+
+void leftStartEvent() {
+  //will hold the code for the start event moving right
+}
 
 
 
@@ -54,23 +87,23 @@ void attackCup() {
   int contL = analogRead(TRANSL);
 
   //loop continues while cup is still detected by both modules
-   while (contR >= (baseR - THRESH) && contL >= (baseL - THRESH)) {
+   while (contR >= (baseR - THRESHLASER) && contL >= (baseL - THRESHLASER)) {
     digitalWrite(LEFTDIR, LOW);
     analogWrite(LEFTSPD, 100);
     analogWrite(RIGHTSPD, 100);
-    // delay(500);//should be removed
+    delay(500);//should be removed
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
   }
 
   //cup is only detected by right, so veer toward it and read
-  while (!(contL >= (baseL - THRESH)) && contR >= (baseR - THRESH)) {
+  while (!(contL >= (baseL - THRESHLASER)) && contR >= (baseR - THRESHLASER)) {
     veerRight();
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
   }
   //cup is only detected by left, veer left, read
-  while(!(contR >= (baseR - THRESH)) && contL >= (baseL - THRESH)) {
+  while(!(contR >= (baseR - THRESHLASER)) && contL >= (baseL - THRESHLASER)) {
     veerLeft();
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
@@ -83,19 +116,34 @@ void attackCup() {
 
 
 void loop() {
+  int nextFallSafeR = analogRead(LEDR);//get new readings from the table sensors
+  int nextFallSafeL = analogRead(LEDL);
 
-int originalR = analogRead(TRANSR);//read transistors for baseline
-int originalL = analogRead(TRANSL);
-digitalWrite(LEFTDIR, HIGH);
-analogWrite(LEFTSPD, 0);
-analogWrite(RIGHTSPD, 0);
-//turn counterclockwise
-int nextR = analogRead(TRANSR);//read transistors again
-int nextL = analogRead(TRANSL);
+while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
 
-if (nextR > (originalR + THRESH) || nextL > (originalL + THRESH)) {
-  attackCup();
+
+  int originalR = analogRead(TRANSR);//read laser transistors for baseline
+  int originalL = analogRead(TRANSL);
+  digitalWrite(LEFTDIR, HIGH);
+  analogWrite(LEFTSPD, 50);
+  analogWrite(RIGHTSPD, 50);
+  //turn counterclockwise
+  int nextR = analogRead(TRANSR);//read laser transistors again
+  int nextL = analogRead(TRANSL);
+
+  if (nextR > (originalR + THRESHLASER) || nextL > (originalL + THRESHLASER)) {
+    attackCup();
+  }
+
+
+
+  nextFallSafeR = analogRead(LEDR);
+  nextFallSafeL = analogRead(LEDL);
+
 }
+
+lifeSaveEvent();
+
 
 
 
