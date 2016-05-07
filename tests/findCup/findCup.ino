@@ -125,8 +125,8 @@ while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - TH
   int originalR = analogRead(TRANSR);//read laser transistors for baseline
   int originalL = analogRead(TRANSL);
   digitalWrite(LEFTDIR, HIGH);
-  analogWrite(LEFTSPD, 50);
-  analogWrite(RIGHTSPD, 50);
+  analogWrite(LEFTSPD, 75);
+  analogWrite(RIGHTSPD, 75);
   //turn counterclockwise
   int nextR = analogRead(TRANSR);//read laser transistors again
   int nextL = analogRead(TRANSL);
