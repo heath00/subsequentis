@@ -13,8 +13,15 @@
 #define THRESHLASER 20
 #define THRESHLED 75
 
+
+//global variables
 int fallSafeR;
 int fallSafeL;//variables for staying on table
+
+int originalR;
+int originalL;//will be initital readings from laser, updated each time main loop runs
+
+bool rightSawLast = false;
 
 
 //initialize pins
@@ -30,35 +37,35 @@ void setup() {
   pinMode(LASERL, OUTPUT);
   digitalWrite(LASERL, HIGH);//laser setup
   pinMode(LEDR, INPUT);
-  pinMode(LEDL, INPUT);
+  pinMode(LEDL, INPUT);//led table sensor setup
 
   fallSafeL = analogRead(LEDL);
   fallSafeR = analogRead(LEDR);
 
   int startChoice = random(2); //generates a random number (either 0 or 1)
 
-  if(startChoice == 0) {
-    rightStartEvent();
-  }
-  else {
-    leftStartEvent();
-  }
+  // if(startChoice == 0) {
+  //   rightStartEvent();
+  // }
+  // else {
+  //   leftStartEvent();
+  // }
 }
 
 //veers subsequentis left
 void veerLeft() {
   digitalWrite(RIGHTDIR, HIGH);
   digitalWrite(LEFTDIR, LOW);
-  analogWrite(RIGHTSPD, 150);
-  analogWrite(LEFTSPD, 100);
+  analogWrite(RIGHTSPD, 200);
+  analogWrite(LEFTSPD, 185);
 }
 
 //veers subsequentis right
 void veerRight() {
   digitalWrite(RIGHTDIR, HIGH);
   digitalWrite(LEFTDIR, LOW);
-  analogWrite(LEFTSPD, 150);
-  analogWrite(RIGHTSPD, 100);
+  analogWrite(LEFTSPD, 200);
+  analogWrite(RIGHTSPD, 185);
 }
 
 //saves subsequentis from falling
@@ -68,11 +75,23 @@ void lifeSaveEvent () {
 }
 
 void rightStartEvent() {
-  //will hold the code for the start event moving right
+  //start event moving right
+  digitalWrite(RIGHTSPD, 75);
+  digitalWrite(LEFTSPD, 150);
+  delay(500);
+  digitalWrite(RIGHTSPD, 0);
+  digitalWrite(LEFTSPD, 0);
+  delay(100);
 }
 
 void leftStartEvent() {
-  //will hold the code for the start event moving right
+  //start event moving left
+  digitalWrite(RIGHTSPD, 150);
+  digitalWrite(LEFTSPD, 75);
+  delay(500);
+  digitalWrite(RIGHTSPD, 0);
+  digitalWrite(LEFTSPD, 0);
+  delay(100);
 }
 
 
@@ -81,33 +100,45 @@ void leftStartEvent() {
 void attackCup() {
   analogWrite(LEFTSPD, 0);
   analogWrite(RIGHTSPD, 0);
-  int baseR = analogRead(TRANSR);//base reading
   int contR = analogRead(TRANSR);//reading that will be updated
-  int baseL = analogRead(TRANSL);
   int contL = analogRead(TRANSL);
 
   //loop continues while cup is still detected by both modules
-   while (contR >= (baseR - THRESHLASER) && contL >= (baseL - THRESHLASER)) {
+   while (contR > (originalR + THRESHLASER) && contL > (originalL + THRESHLASER)) {
     digitalWrite(LEFTDIR, LOW);
-    analogWrite(LEFTSPD, 100);
-    analogWrite(RIGHTSPD, 100);
-    delay(500);//should be removed
+    analogWrite(LEFTSPD, 230);
+    analogWrite(RIGHTSPD, 230);
+    //delay(500);//should be removed
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
   }
-
   //cup is only detected by right, so veer toward it and read
-  while (!(contL >= (baseL - THRESHLASER)) && contR >= (baseR - THRESHLASER)) {
+  while (contR > (originalR + THRESHLASER)) {
     veerRight();
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
+    rightSawLast = true;
   }
   //cup is only detected by left, veer left, read
-  while(!(contR >= (baseR - THRESHLASER)) && contL >= (baseL - THRESHLASER)) {
+  while(contL > (originalL + THRESHLASER)) {
     veerLeft();
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
+    rightSawLast = false;
   }
+
+  if (contR > (originalR + THRESHLASER) || contL > (originalL + THRESHLASER)) {
+    attackCup();
+  }
+//
+//  if (rightSawLast) {
+//    veerRight();
+//    delay(500);
+//  }
+//  else {
+//    veerLeft();
+//    delay(500);
+//  }
 
   return;
 }
@@ -122,11 +153,19 @@ void loop() {
 while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
 
 
-  int originalR = analogRead(TRANSR);//read laser transistors for baseline
-  int originalL = analogRead(TRANSL);
-  digitalWrite(LEFTDIR, HIGH);
-  analogWrite(LEFTSPD, 50);
-  analogWrite(RIGHTSPD, 50);
+  originalR = analogRead(TRANSR);//read laser transistors for baseline
+  originalL = analogRead(TRANSL);
+  if (rightSawLast) {
+    digitalWrite(LEFTDIR, LOW);
+    digitalWrite(RIGHTDIR, LOW);
+  }
+  else {
+    digitalWrite(LEFTDIR, HIGH);
+    digitalWrite(RIGHTDIR, HIGH);
+  }
+
+  analogWrite(LEFTSPD, 75);
+  analogWrite(RIGHTSPD, 75);
   //turn counterclockwise
   int nextR = analogRead(TRANSR);//read laser transistors again
   int nextL = analogRead(TRANSL);
