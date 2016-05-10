@@ -16,7 +16,7 @@
 #define THRESHLED 75
 
 //define speeds
-#define FORWARDSPD 200
+#define FORWARDSPD 150
 #define ROTATESPD 75
 #define VEERDIFF 20
 
@@ -24,7 +24,9 @@
 
 //global variables
 int fallSafeR;
-int fallSafeL;//variables for staying on table
+int fallSafeL;
+int nextFallSafeR;
+int nextFallSafeL;//variables for staying on table
 
 int originalR;
 int originalL;//will be initital readings from laser, updated each time main loop runs
@@ -50,14 +52,8 @@ void setup() {
   fallSafeL = analogRead(LEDL);
   fallSafeR = analogRead(LEDR);
 
-  int startChoice = random(2); //generates a random number (either 0 or 1)
-
-  // if(startChoice == 0) {
-  //   rightStartEvent();
-  // }
-  // else {
-  //   leftStartEvent();
-  // }
+  int startChoice = random(1, 3);//generates a random number (either 1 or 2)
+  startEvent(startChoice);
 }
 
 //veers subsequentis left
@@ -82,25 +78,26 @@ void lifeSaveEvent () {
   analogWrite(LEFTSPD, 0);
 }
 
-void rightStartEvent() {
+void startEvent(int choice) {
   //start event moving right
-  digitalWrite(RIGHTSPD, 75);
-  digitalWrite(LEFTSPD, 150);
-  delay(500);
-  digitalWrite(RIGHTSPD, 0);
-  digitalWrite(LEFTSPD, 0);
-  delay(100);
+  if (choice == 1) {
+    veerLeft();
+    delay(2500);
+    digitalWrite(RIGHTSPD,0);
+    digitalWrite(LEFTSPD, 0);
+    delay(100);
+  }
+  else if (choice == 2) {
+    veerRight();
+    delay(2500);
+    digitalWrite(RIGHTSPD,0);
+    digitalWrite(LEFTSPD, 0);
+    delay(100);
+  }
+  
 }
 
-void leftStartEvent() {
-  //start event moving left
-  digitalWrite(RIGHTSPD, 150);
-  digitalWrite(LEFTSPD, 75);
-  delay(500);
-  digitalWrite(RIGHTSPD, 0);
-  digitalWrite(LEFTSPD, 0);
-  delay(100);
-}
+
 
 
 
@@ -112,13 +109,16 @@ void attackCup() {
   int contL = analogRead(TRANSL);
 
   //loop continues while cup is still detected by both modules
-   while (contR > (originalR + THRESHLASER) && contL > (originalL + THRESHLASER)) {
+   while (contR > (originalR + THRESHLASER) && contL > (originalL + THRESHLASER) && nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
     digitalWrite(LEFTDIR, LOW);
     analogWrite(LEFTSPD, FORWARDSPD);
     analogWrite(RIGHTSPD, FORWARDSPD);
     //delay(500);//should be removed
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
+    nextFallSafeR = analogRead(LEDR);
+    nextFallSafeL = analogRead(LEDL);
+    
   }
   //cup is only detected by right, so veer toward it and read
   while (contR > (originalR + THRESHLASER)) {
