@@ -153,6 +153,7 @@ void loop() {
 while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
 
 
+<<<<<<< HEAD
   originalR = analogRead(TRANSR);//read laser transistors for baseline
   originalL = analogRead(TRANSL);
   if (rightSawLast) {
@@ -164,6 +165,11 @@ while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - TH
     digitalWrite(RIGHTDIR, HIGH);
   }
 
+=======
+  int originalR = analogRead(TRANSR);//read laser transistors for baseline
+  int originalL = analogRead(TRANSL);
+  digitalWrite(LEFTDIR, HIGH);
+>>>>>>> fea5bd6851606b22cab1cbdff7d973eeb34f515f
   analogWrite(LEFTSPD, 75);
   analogWrite(RIGHTSPD, 75);
   //turn counterclockwise
