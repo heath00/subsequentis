@@ -10,8 +10,16 @@
 #define LEDL A2
 #define LASERR 2
 #define LASERL 3
+
+//define thresholds
 #define THRESHLASER 20
 #define THRESHLED 75
+
+//define speeds
+#define FORWARDSPD 200
+#define ROTATESPD 75
+#define VEERDIFF 20
+
 
 
 //global variables
@@ -56,16 +64,16 @@ void setup() {
 void veerLeft() {
   digitalWrite(RIGHTDIR, HIGH);
   digitalWrite(LEFTDIR, LOW);
-  analogWrite(RIGHTSPD, 200);
-  analogWrite(LEFTSPD, 185);
+  analogWrite(RIGHTSPD, FORWARDSPD);
+  analogWrite(LEFTSPD, FORWARDSPD - VEERDIFF);
 }
 
 //veers subsequentis right
 void veerRight() {
   digitalWrite(RIGHTDIR, HIGH);
   digitalWrite(LEFTDIR, LOW);
-  analogWrite(LEFTSPD, 200);
-  analogWrite(RIGHTSPD, 185);
+  analogWrite(LEFTSPD, FORWARDSPD);
+  analogWrite(RIGHTSPD, FORWARDSPD - VEERDIFF);
 }
 
 //saves subsequentis from falling
@@ -106,8 +114,8 @@ void attackCup() {
   //loop continues while cup is still detected by both modules
    while (contR > (originalR + THRESHLASER) && contL > (originalL + THRESHLASER)) {
     digitalWrite(LEFTDIR, LOW);
-    analogWrite(LEFTSPD, 230);
-    analogWrite(RIGHTSPD, 230);
+    analogWrite(LEFTSPD, FORWARDSPD);
+    analogWrite(RIGHTSPD, FORWARDSPD);
     //delay(500);//should be removed
     contL = analogRead(TRANSL);
     contR = analogRead(TRANSR);
@@ -152,8 +160,6 @@ void loop() {
 
 while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
 
-
-<<<<<<< HEAD
   originalR = analogRead(TRANSR);//read laser transistors for baseline
   originalL = analogRead(TRANSL);
   if (rightSawLast) {
@@ -165,13 +171,8 @@ while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - TH
     digitalWrite(RIGHTDIR, HIGH);
   }
 
-=======
-  int originalR = analogRead(TRANSR);//read laser transistors for baseline
-  int originalL = analogRead(TRANSL);
-  digitalWrite(LEFTDIR, HIGH);
->>>>>>> fea5bd6851606b22cab1cbdff7d973eeb34f515f
-  analogWrite(LEFTSPD, 75);
-  analogWrite(RIGHTSPD, 75);
+  analogWrite(LEFTSPD, ROTATESPD);
+  analogWrite(RIGHTSPD, ROTATESPD);
   //turn counterclockwise
   int nextR = analogRead(TRANSR);//read laser transistors again
   int nextL = analogRead(TRANSL);
@@ -188,11 +189,4 @@ while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - TH
 }
 
 lifeSaveEvent();
-
-
-
-
-
-
-
 }
