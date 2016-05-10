@@ -49,6 +49,8 @@ void setup() {
   pinMode(LEDR, INPUT);
   pinMode(LEDL, INPUT);//led table sensor setup
 
+  randomSeed(analogRead(TRANSR));
+
   fallSafeL = analogRead(LEDL);
   fallSafeR = analogRead(LEDR);
 
@@ -81,15 +83,18 @@ void lifeSaveEvent () {
 void startEvent(int choice) {
   //start event moving right
   if (choice == 1) {
-    veerLeft();
-    delay(2500);
+    analogWrite(LEFTSPD, 235 - (2 * VEERDIFF));
+    analogWrite(RIGHTSPD, 235);
+    delay(1500);
     digitalWrite(RIGHTSPD,0);
     digitalWrite(LEFTSPD, 0);
     delay(100);
+    rightSawLast = true;
   }
   else if (choice == 2) {
-    veerRight();
-    delay(2500);
+    analogWrite(LEFTSPD, 235);
+    analogWrite(RIGHTSPD, 235 - (2 * VEERDIFF));
+    delay(1500);
     digitalWrite(RIGHTSPD,0);
     digitalWrite(LEFTSPD, 0);
     delay(100);
