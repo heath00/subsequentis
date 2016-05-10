@@ -85,7 +85,7 @@ void startEvent(int choice) {
   if (choice == 1) {
     analogWrite(LEFTSPD, 235 - (2 * VEERDIFF));
     analogWrite(RIGHTSPD, 235);
-    delay(1500);
+    delay(1200);
     digitalWrite(RIGHTSPD,0);
     digitalWrite(LEFTSPD, 0);
     delay(100);
@@ -94,7 +94,7 @@ void startEvent(int choice) {
   else if (choice == 2) {
     analogWrite(LEFTSPD, 235);
     analogWrite(RIGHTSPD, 235 - (2 * VEERDIFF));
-    delay(1500);
+    delay(1200);
     digitalWrite(RIGHTSPD,0);
     digitalWrite(LEFTSPD, 0);
     delay(100);
