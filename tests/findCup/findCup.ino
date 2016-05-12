@@ -10,15 +10,19 @@
 #define LEDL A2
 #define LASERR 2
 #define LASERL 3
+#define WHIPSPD 4
+#define WHIPDIR 5
+
 
 //define thresholds
 #define THRESHLASER 20
 #define THRESHLED 75
 
 //define speeds
-#define FORWARDSPD 150
+#define FORWARDSPD 200
 #define ROTATESPD 75
 #define VEERDIFF 20
+#define WEAPONSPD 255
 
 
 
@@ -110,6 +114,7 @@ void startEvent(int choice) {
 void attackCup() {
   analogWrite(LEFTSPD, 0);
   analogWrite(RIGHTSPD, 0);
+  analogWrite(WHIPSPD, WEAPONSPD);//turn on the weapon
   int contR = analogRead(TRANSR);//reading that will be updated
   int contL = analogRead(TRANSL);
 
@@ -143,15 +148,7 @@ void attackCup() {
   if (contR > (originalR + THRESHLASER) || contL > (originalL + THRESHLASER)) {
     attackCup();
   }
-//
-//  if (rightSawLast) {
-//    veerRight();
-//    delay(500);
-//  }
-//  else {
-//    veerLeft();
-//    delay(500);
-//  }
+
 
   return;
 }
@@ -162,6 +159,7 @@ void attackCup() {
 void loop() {
   int nextFallSafeR = analogRead(LEDR);//get new readings from the table sensors
   int nextFallSafeL = analogRead(LEDL);
+  analogWrite(WHIPSPD, 0);//turn off the weapon
 
 while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
 
