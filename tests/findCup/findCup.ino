@@ -12,18 +12,22 @@
 #define LASERL 3
 #define WHIPSPD 4
 #define WHIPDIR 5
+#define LEFTBUTTON 12
+#define RIGHTBUTTON 13
 
 
 //define thresholds
 #define THRESHLASER 15
 #define THRESHLED 750
+#define TIMETHRESH 4000
 
 //define speeds
 #define FORWARDSPD 255
+#define SCANFORWARDSPD 150
 #define BACKWARDSPD 50
-#define ROTATESPD 75
+#define ROTATESPD 100
 #define VEERDIFF 20
-#define WEAPONSPD 255
+#define WEAPONSPD 200
 
 
 
@@ -115,8 +119,8 @@ void spinBreaker() {
   digitalWrite(RIGHTDIR, HIGH);
   int i;
   for (i = 0; i < 4  && nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED); i++) {
-    digitalWrite(LEFTSPD, FORWARDSPD);
-    digitalWrite(RIGHTSPD, FORWARDSPD);
+    digitalWrite(LEFTSPD, SCANFORWARDSPD);
+    digitalWrite(RIGHTSPD, SCANFORWARDSPD);
     delay(500);
     nextFallSafeR = analogRead(LEDR);
     nextFallSafeL = analogRead(LEDL);
@@ -158,7 +162,7 @@ void startEvent(int choice) {
 void attackCup() {
   analogWrite(LEFTSPD, 0);
   analogWrite(RIGHTSPD, 0);
-  //analogWrite(WHIPSPD, WEAPONSPD);//turn on the weapon
+  analogWrite(WHIPSPD, WEAPONSPD);//turn on the weapon
   int contR = analogRead(TRANSR);//reading that will be updated
   int contL = analogRead(TRANSL);
 
@@ -204,7 +208,7 @@ void attackCup() {
 void loop() {
   int nextFallSafeR = analogRead(LEDR);//get new readings from the table sensors
   int nextFallSafeL = analogRead(LEDL);
-  //analogWrite(WHIPSPD, 0);//turn off the weapon
+  analogWrite(WHIPSPD, 0);//turn off the weapon
 
 while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
 
@@ -212,6 +216,16 @@ while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - TH
 
   originalR = analogRead(TRANSR);//read laser transistors for baseline
   originalL = analogRead(TRANSL);
+  
+  //button checking
+  if(!digitalRead(LEFTBUTTON)) {
+    rightSawLast = true;
+  }
+  else if(!digitalRead(RIGHTBUTTON)) {
+    rightSawLast = false;
+  }
+
+  //decide spin direction
   if (rightSawLast) {
     digitalWrite(LEFTDIR, LOW);
     digitalWrite(RIGHTDIR, LOW);
@@ -231,7 +245,7 @@ while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - TH
     attackCup();
   }
 
-  if(newTime > (oldTime + 24000)) {
+  if(newTime > (oldTime + TIMETHRESH)) {
     oldTime = newTime;
     spinBreaker();
   }
