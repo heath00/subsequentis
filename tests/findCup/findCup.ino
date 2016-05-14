@@ -17,16 +17,17 @@
 
 
 //define thresholds
-#define THRESHLASER 15
-#define THRESHLED 750
+#define THRESHLASER 50
+#define THRESHLEDR 150
+#define THRESHLEDL 150
 #define TIMETHRESH 4000
 
 //define speeds
 #define FORWARDSPD 255
-#define SCANFORWARDSPD 150
-#define BACKWARDSPD 50
-#define ROTATESPD 100
-#define VEERDIFF 20
+#define SCANMOVESPD 150
+#define BACKWARDSPD 150
+#define ROTATESPD 125
+#define VEERDIFF 30
 #define WEAPONSPD 200
 
 
@@ -42,8 +43,10 @@ int originalL;//will be initital readings from laser, updated each time main loo
 
 bool rightSawLast = false;
 
-int oldTime = 0;
-int newTime = 0;//variables to prevent spinning in place more than 4 times in a row
+int oldTime = 0;//variable to prevent spinning in place
+
+int spinBreakDirectionChoice = 0;
+
 
 
 //initialize pins
@@ -67,7 +70,7 @@ void setup() {
   fallSafeR = analogRead(LEDR);
 
   int startChoice = random(1, 3);//generates a random number (either 1 or 2)
-  startEvent(startChoice);
+  //startEvent(startChoice);
 }
 
 //veers subsequentis left
@@ -96,16 +99,16 @@ void lifeSaveEvent () {
 
 
   //right led detected table edge
-  if (nextFallSafeR < (fallSafeR - THRESHLED)) {
-    digitalWrite(LEFTSPD, BACKWARDSPD - VEERDIFF);
-    digitalWrite(RIGHTSPD, BACKWARDSPD);
+  if (nextFallSafeR < (fallSafeR - THRESHLEDR)) {
+    analogWrite(LEFTSPD, BACKWARDSPD - VEERDIFF);
+    analogWrite(RIGHTSPD, BACKWARDSPD);
     delay(500);
     rightSawLast = false;//veer back and away and begin scanning left
   }
   //left led detected table edge
-  else if (nextFallSafeL > (fallSafeL - THRESHLED)) {
-    digitalWrite(RIGHTSPD, BACKWARDSPD - VEERDIFF);
-    digitalWrite(LEFTSPD, BACKWARDSPD);
+  else if (nextFallSafeL < (fallSafeL - THRESHLEDL)) {
+    analogWrite(RIGHTSPD, BACKWARDSPD - VEERDIFF);
+    analogWrite(LEFTSPD, BACKWARDSPD);
     delay(500);
     rightSawLast = true;//veer back and away from edge and begin scanning right
   }
@@ -115,20 +118,36 @@ void lifeSaveEvent () {
 }
 
 void spinBreaker() {
-  digitalWrite(LEFTDIR, LOW);
-  digitalWrite(RIGHTDIR, HIGH);
-  int i;
-  for (i = 0; i < 4  && nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED); i++) {
-    digitalWrite(LEFTSPD, SCANFORWARDSPD);
-    digitalWrite(RIGHTSPD, SCANFORWARDSPD);
-    delay(500);
-    nextFallSafeR = analogRead(LEDR);
-    nextFallSafeL = analogRead(LEDL);
+  spinBreakDirectionChoice++;
+  if ((spinBreakDirectionChoice % 4) == 0) {
+    digitalWrite(LEFTDIR, HIGH);
+    digitalWrite(RIGHTDIR, LOW);
+    digitalWrite(LEFTSPD, SCANMOVESPD);
+    digitalWrite(RIGHTSPD, SCANMOVESPD);
+    delay(250);
+    return;
+  }
+  else {
+    digitalWrite(LEFTDIR, LOW);
+    digitalWrite(RIGHTDIR, HIGH);
+    analogWrite(LEFTSPD, SCANMOVESPD);
+    analogWrite(RIGHTSPD, SCANMOVESPD);
   }
 
-  if(i != 4) {
-    lifeSaveEvent();
+
+  nextFallSafeR = analogRead(LEDR);
+  nextFallSafeL = analogRead(LEDL);
+  for (int i = 0; i < 100; i++) {
+    if(nextFallSafeR < (fallSafeR - THRESHLEDR) || nextFallSafeL < (fallSafeL - THRESHLEDL)) {
+      lifeSaveEvent();
+      return;
+    }
+    nextFallSafeR = analogRead(LEDR);
+    nextFallSafeL = analogRead(LEDL);
+    delay(20);
   }
+
+  return;
 
 }
 
@@ -138,8 +157,8 @@ void startEvent(int choice) {
     analogWrite(LEFTSPD, 235 - (2 * VEERDIFF));
     analogWrite(RIGHTSPD, 235);
     delay(1200);
-    digitalWrite(RIGHTSPD,0);
-    digitalWrite(LEFTSPD, 0);
+    analogWrite(RIGHTSPD,0);
+    analogWrite(LEFTSPD, 0);
     delay(100);
     rightSawLast = true;
   }
@@ -147,11 +166,11 @@ void startEvent(int choice) {
     analogWrite(LEFTSPD, 235);
     analogWrite(RIGHTSPD, 235 - (2 * VEERDIFF));
     delay(1200);
-    digitalWrite(RIGHTSPD,0);
-    digitalWrite(LEFTSPD, 0);
+    analogWrite(RIGHTSPD,0);
+    analogWrite(LEFTSPD, 0);
     delay(100);
   }
-  
+  return;
 }
 
 
@@ -167,7 +186,7 @@ void attackCup() {
   int contL = analogRead(TRANSL);
 
   //loop continues while cup is still detected by both modules
-   while (contR > (originalR + THRESHLASER) && contL > (originalL + THRESHLASER) && nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
+   while (contR > (originalR + THRESHLASER) && contL > (originalL + THRESHLASER) && nextFallSafeR > (fallSafeR - THRESHLEDR) && nextFallSafeL > (fallSafeL - THRESHLEDL)) {
     digitalWrite(LEFTDIR, LOW);
     analogWrite(LEFTSPD, FORWARDSPD);
     analogWrite(RIGHTSPD, FORWARDSPD);
@@ -197,7 +216,7 @@ void attackCup() {
     attackCup();
   }
 
-  oldTime = newTime;//update old time
+  oldTime = millis();//update old time
 
   return;
 }
@@ -208,12 +227,11 @@ void attackCup() {
 void loop() {
   int nextFallSafeR = analogRead(LEDR);//get new readings from the table sensors
   int nextFallSafeL = analogRead(LEDL);
+
+
+while(nextFallSafeR > (fallSafeR - THRESHLEDR) && nextFallSafeL > (fallSafeL - THRESHLEDL)) {
+
   analogWrite(WHIPSPD, 0);//turn off the weapon
-
-while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - THRESHLED)) {
-
-  newTime = millis();
-
   originalR = analogRead(TRANSR);//read laser transistors for baseline
   originalL = analogRead(TRANSL);
   
@@ -245,9 +263,9 @@ while(nextFallSafeR > (fallSafeR - THRESHLED) && nextFallSafeL > (fallSafeL - TH
     attackCup();
   }
 
-  if(newTime > (oldTime + TIMETHRESH)) {
-    oldTime = newTime;
+  if(millis() > (oldTime + TIMETHRESH)) {
     spinBreaker();
+    oldTime = millis();
   }
 
 
