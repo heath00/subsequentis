@@ -17,7 +17,7 @@
 
 
 //define thresholds
-#define THRESHLASER 50
+#define THRESHLASER 15
 #define THRESHLEDR 150
 #define THRESHLEDL 150
 #define TIMETHRESH 4000
@@ -25,8 +25,8 @@
 //define speeds
 #define FORWARDSPD 255
 #define SCANMOVESPD 150
-#define BACKWARDSPD 150
-#define ROTATESPD 125
+#define BACKWARDSPD 175
+#define ROTATESPD 140
 #define VEERDIFF 30
 #define WEAPONSPD 200
 
@@ -69,8 +69,9 @@ void setup() {
   fallSafeL = analogRead(LEDL);
   fallSafeR = analogRead(LEDR);
 
+
   int startChoice = random(1, 3);//generates a random number (either 1 or 2)
-  //startEvent(startChoice);
+  startEvent(startChoice);
 }
 
 //veers subsequentis left
@@ -156,7 +157,7 @@ void startEvent(int choice) {
   if (choice == 1) {
     analogWrite(LEFTSPD, 235 - (2 * VEERDIFF));
     analogWrite(RIGHTSPD, 235);
-    delay(1200);
+    delay(1600);
     analogWrite(RIGHTSPD,0);
     analogWrite(LEFTSPD, 0);
     delay(100);
@@ -165,7 +166,7 @@ void startEvent(int choice) {
   else if (choice == 2) {
     analogWrite(LEFTSPD, 235);
     analogWrite(RIGHTSPD, 235 - (2 * VEERDIFF));
-    delay(1200);
+    delay(1600);
     analogWrite(RIGHTSPD,0);
     analogWrite(LEFTSPD, 0);
     delay(100);
