@@ -19,6 +19,5 @@ void loop() {
   SerialUSB.println(right);
   
   
-  // put your main code here, to run repeatedly:
 
 }
